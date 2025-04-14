@@ -1,7 +1,6 @@
-import os
-
 import allure
 import pytest
+import urllib3
 from dotenv import load_dotenv
 from playwright.sync_api import sync_playwright
 
@@ -53,3 +52,8 @@ def pytest_runtest_makereport(item, call):
 @pytest.fixture(autouse=True)
 def load_envs():
     load_dotenv()
+
+
+@pytest.fixture(autouse=True)
+def disable_ssl_warnings():
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
