@@ -159,3 +159,16 @@ def test_get_farmers_phonecalls(client):
     )
     assert response.status_code == 200
     assert isinstance(response.json(), dict)
+
+
+def test_get_rcenters_with_filters(client):
+    response = client.get(
+        "api/rcenters",
+        params={
+            "page": "1",
+            "limit": "10",
+            "pagination": "true",
+        },
+    )
+    assert response.status_code == 200
+    assert isinstance(response.json(), dict)
