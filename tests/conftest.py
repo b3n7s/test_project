@@ -1,10 +1,12 @@
-import pytest
-from playwright.sync_api import sync_playwright
-import allure
 import os
+
+import allure
+import pytest
 from dotenv import load_dotenv
+from playwright.sync_api import sync_playwright
 
 load_dotenv()
+
 
 @pytest.fixture(scope="session")
 def browser():
@@ -13,22 +15,26 @@ def browser():
         yield browser
         browser.close()
 
+
 @pytest.fixture(scope="function")
 def page(browser):
     page = browser.new_page(ignore_https_errors=True)
     yield page
     page.close()
 
+
 @pytest.fixture(scope="function")
 def admin_page(page):
     from pages.admin_page import AdminPage
+
     return AdminPage(page)
+
 
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_makereport(item, call):
     outcome = yield
     report = outcome.get_result()
-    
+
     if report.when == 'call' or report.when == "setup":
         xfail = hasattr(report, 'wasxfail')
         if (report.skipped and xfail) or (report.failed and not xfail):
@@ -38,7 +44,12 @@ def pytest_runtest_makereport(item, call):
                     allure.attach(
                         page.screenshot(),
                         name='screenshot',
-                        attachment_type=allure.attachment_type.PNG
+                        attachment_type=allure.attachment_type.PNG,
                     )
             except Exception as e:
-                print(f'Не удалось сделать скриншот: {e}') 
+                print(f'Не удалось сделать скриншот: {e}')
+
+
+@pytest.fixture(autouse=True)
+def load_envs():
+    load_dotenv()

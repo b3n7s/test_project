@@ -1,10 +1,14 @@
 import random
 
+import locust.stats
 from dotenv import load_dotenv
 from locust import HttpUser, between, task
 
 from services.agrohelper_client import auth_as_admin
 
+locust.stats.PERCENTILES_TO_REPORT = [0.50, 0.95, 0.99]
+locust.stats.PERCENTILES_TO_STATISTICS = [0.50, 0.95, 0.99]
+locust.stats.PERCENTILES_TO_CHART = [0.50, 0.95, 0.99]
 # Загружаем переменные окружения
 load_dotenv()
 
@@ -318,3 +322,20 @@ class FarmerApiUser(HttpUser):
         for page in [1, 2, 1000, 1874, 1875]:
             self.client.get("/api/farmers", params={**filters, "page": page})
             self.wait()
+
+
+class AdminApiUser(HttpUser):
+    wait_time = between(1, 5)
+    host = "https://agroservice.softdevcenter.ru"
+
+    def on_start(self):
+        """Выполняется при старте каждого пользователя"""
+        # Создаем и аутентифицируем клиент
+        admin_token = auth_as_admin()
+
+        self.client.headers = {'Authorization': admin_token.access_token}
+
+    @task(100)
+    def simple_search(self):
+        page = random.randint(1, 15)
+        self.client.get("/api/admin/users", params={"page": page})
